@@ -1,0 +1,27 @@
+# ── Pipeline container — needs CUDA for YOLOv8 GPU inference ─────────────────
+FROM pytorch/pytorch:2.3.0-cuda11.8-cudnn8-runtime
+
+WORKDIR /app
+
+# install system dependencies for OpenCV
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir gdown && \
+    pip install --no-cache-dir git+https://github.com/KaiyangZhou/deep-person-reid.git
+
+# copy pipeline code
+COPY pipeline/ ./pipeline/
+
+# default command — process all clips and emit events
+CMD ["bash", "pipeline/run.sh"]

@@ -1,0 +1,92 @@
+version: "3.9"
+
+services:
+
+  # ─────────────────────────────────────────────
+  # Intelligence API  (FastAPI + SQLite)
+  # ─────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: store_intelligence_api
+    ports:
+      - "8000:8000"                         # API available at http://localhost:8000
+    volumes:
+      - sqlite_data:/app/data               # persists SQLite DB across restarts
+      - ./data:/app/clips:ro                # mounts local clips folder (read-only)
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/store_intelligence.db
+      - LOG_LEVEL=INFO
+      - ENV=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - store_net
+
+  # ─────────────────────────────────────────────
+  # Detection Pipeline  (runs against CCTV clips)
+  # ─────────────────────────────────────────────
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile.pipeline
+    container_name: store_intelligence_pipeline
+    volumes:
+      - ./data:/app/clips:ro               # read clips from local data/ folder
+      - ./pipeline:/app/pipeline           # mount pipeline code
+      - pipeline_output:/app/output        # write events.jsonl here
+    environment:
+      - API_URL=http://api:8000             # pipeline POSTs events to the API
+      - CLIPS_DIR=/app/clips
+      - OUTPUT_DIR=/app/output
+      - LOG_LEVEL=INFO
+    depends_on:
+      api:
+        condition: service_healthy         # wait for API to be ready before running
+    networks:
+      - store_net
+    profiles:
+      - pipeline                           # only runs when explicitly called
+                                           # docker compose --profile pipeline up
+
+  # ─────────────────────────────────────────────
+  # Live Dashboard  (Part E bonus — terminal UI)
+  # ─────────────────────────────────────────────
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: store_intelligence_dashboard
+    command: python dashboard/terminal_dashboard.py
+    environment:
+      - API_URL=http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - store_net
+    profiles:
+      - dashboard                          # only runs when explicitly called
+                                           # docker compose --profile dashboard up
+
+# ─────────────────────────────────────────────
+# Volumes
+# ─────────────────────────────────────────────
+volumes:
+  sqlite_data:                             # persists the SQLite database
+    driver: local
+  pipeline_output:                         # stores events.jsonl output
+    driver: local
+
+# ─────────────────────────────────────────────
+# Networks
+# ─────────────────────────────────────────────
+networks:
+  store_net:
+    driver: bridge

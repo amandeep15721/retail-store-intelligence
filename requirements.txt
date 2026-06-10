@@ -1,0 +1,40 @@
+# ── Computer Vision & Detection ──────────────────────────────────────────────
+ultralytics==8.2.18           # YOLOv8 + ByteTrack (tracker built in)
+opencv-python==4.9.0.80       # video frame processing
+supervision==0.21.0           # detection utilities, zone polygon helpers
+ 
+# ── Re-ID (person re-identification) ─────────────────────────────────────────
+#torchreid==0.2.5              # OSNet appearance embeddings for Re-ID
+#torch==2.3.0+cu118                # PyTorch backend (CPU — swap for cu118 build if you have a GPU)
+#torchvision==0.18.0+cu118        # image transforms for Re-ID model
+ 
+# ── API Framework ─────────────────────────────────────────────────────────────
+fastapi==0.111.0              # REST API framework
+uvicorn[standard]==0.29.0     # ASGI server
+pydantic==2.7.1               # event schema validation (v2)
+
+ 
+# ── Database ──────────────────────────────────────────────────────────────────
+sqlalchemy==2.0.30            # ORM + query builder
+aiosqlite==0.20.0             # async SQLite driver for FastAPI
+ 
+# ── Logging & Observability ───────────────────────────────────────────────────
+structlog==24.1.0             # structured JSON logging
+python-json-logger==2.0.7     # JSON log formatter fallback
+ 
+# ── Testing ───────────────────────────────────────────────────────────────────
+pytest==8.2.0                 # test runner
+pytest-asyncio==0.23.6        # async test support for FastAPI
+httpx==0.27.0                 # test client for FastAPI endpoints
+pytest-cov==5.0.0             # coverage reporting
+factory-boy==3.3.0            # test data factories for events
+ 
+# ── Live Dashboard (Part E) ───────────────────────────────────────────────────
+rich==13.7.1                  # terminal dashboard (rich.Live)
+ 
+# ── Utilities ─────────────────────────────────────────────────────────────────
+python-dotenv==1.0.1          # load .env files for config
+numpy==1.26.4                 # array ops (used by CV pipeline)
+pandas==2.2.2                 # POS transaction CSV processing
+python-multipart==0.0.9       # file upload support in FastAPI
+python-dateutil==2.9.0        # timestamp parsing helpers

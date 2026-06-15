@@ -2,6 +2,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.database import init_db
+from app.ingestion import router as ingestion_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -21,6 +22,9 @@ app = FastAPI(
     description="Real time retail-store analytics derived from CCTV events",
     version="0.1.0",
 )
+
+
+app.include_router(ingestion_router)
 
 @app.get("/")
 async def root() -> dict:

@@ -286,3 +286,58 @@ class IngestResponse(BaseModel):
         default_factory=list,
         description="Details for each rejected event.",
     )
+    
+    
+    
+ 
+# ──────────────────────────────────────────────────────────────────────────
+# GET /stores/{id}/metrics response models
+# ──────────────────────────────────────────────────────────────────────────
+ 
+class ZoneDwell(BaseModel):
+    """Average dwell time for one zone, used in MetricsResponse.avg_dwell_per_zone."""
+ 
+    zone_id: str
+    avg_dwell_ms: float = Field(
+        ..., ge=0,
+        description="Average dwell_ms across ZONE_DWELL events for this zone.",
+    )
+    sample_count: int = Field(
+        ..., ge=0,
+        description="Number of ZONE_DWELL events this average is based on.",
+    )
+ 
+ 
+class MetricsResponse(BaseModel):
+    """Response body for GET /stores/{id}/metrics.
+ 
+    NOTE: `conversion_rate` is currently always `null`. Computing it
+    requires correlating visitor sessions with pos_transactions.csv (a
+    visitor in the billing zone within 5 minutes before a POS transaction
+    counts as converted). This is a deliberate incremental step -- see
+    CHOICES.md for the rationale -- and will be filled in once the POS
+    table + correlation logic is added.
+    """
+ 
+    store_id: str
+    date: str = Field(..., description="ISO-8601 date (YYYY-MM-DD) these metrics cover, UTC.")
+    unique_visitors: int = Field(
+        ..., ge=0,
+        description="Distinct non-staff visitor_ids with activity on this date.",
+    )
+    conversion_rate: Optional[float] = Field(
+        default=None,
+        description="visitors who purchased / unique_visitors. null until POS correlation is implemented.",
+    )
+    avg_dwell_per_zone: list[ZoneDwell] = Field(default_factory=list)
+    queue_depth: int = Field(
+        ..., ge=0,
+        description="Most recently observed billing queue depth; 0 if no queue activity.",
+    )
+    abandonment_rate: float = Field(
+        ..., ge=0.0, le=1.0,
+        description="BILLING_QUEUE_ABANDON / BILLING_QUEUE_JOIN; 0.0 if there were no queue joins.",
+    )
+    generated_at: datetime = Field(
+        ..., description="When this response was computed -- demonstrates it's real-time, not cached.",
+    )

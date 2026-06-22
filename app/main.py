@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from app.database import init_db
 from app.ingestion import router as ingestion_router
 from app.metrics import router as metrics_router
+from app.funnel import router as funnel_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -27,6 +28,7 @@ app = FastAPI(
 
 app.include_router(ingestion_router)
 app.include_router(metrics_router)
+app.include_router(funnel_router)
 
 @app.get("/")
 async def root() -> dict:

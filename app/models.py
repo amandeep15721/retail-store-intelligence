@@ -341,3 +341,33 @@ class MetricsResponse(BaseModel):
     generated_at: datetime = Field(
         ..., description="When this response was computed -- demonstrates it's real-time, not cached.",
     )
+    
+    
+    
+    
+# ──────────────────────────────────────────────────────────────────────────
+# GET /stores/{id}/funnel response models
+# ──────────────────────────────────────────────────────────────────────────
+ 
+class FunnelStage(BaseModel):
+    """One stage in the conversion funnel."""
+ 
+    stage: str = Field(..., description="Stage name: ENTRY, ZONE_VISIT, BILLING_QUEUE, PURCHASE")
+    count: int = Field(..., ge=0, description="Number of unique sessions that reached this stage.")
+    drop_off_pct: float = Field(
+        ..., ge=0.0, le=100.0,
+        description="Percentage of sessions lost vs the PREVIOUS stage. 0.0 for the first stage.",
+    )
+ 
+ 
+class FunnelResponse(BaseModel):
+    """Response body for GET /stores/{id}/funnel."""
+ 
+    store_id: str
+    date: str
+    stages: list[FunnelStage] = Field(default_factory=list)
+    session_unit: bool = Field(
+        default=True,
+        description="Always true -- counts are per unique visitor session, not raw events.",
+    )
+    generated_at: datetime

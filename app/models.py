@@ -371,3 +371,30 @@ class FunnelResponse(BaseModel):
         description="Always true -- counts are per unique visitor session, not raw events.",
     )
     generated_at: datetime
+    
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# GET /stores/{id}/heatmap response models
+# ──────────────────────────────────────────────────────────────────────────
+ 
+class HeatmapZone(BaseModel):
+    """Heatmap data for one zone."""
+ 
+    zone_id: str
+    visit_count: int = Field(..., ge=0, description="Distinct visitors who entered this zone.")
+    avg_dwell_ms: float = Field(..., ge=0, description="Average dwell time in milliseconds.")
+    heat_score: float = Field(..., ge=0.0, le=100.0, description="Normalised 0-100 score across all zones.")
+    data_confidence: bool = Field(
+        ...,
+        description="False if fewer than 20 sessions contributed -- treat score with caution.",
+    )
+ 
+ 
+class HeatmapResponse(BaseModel):
+    """Response body for GET /stores/{id}/heatmap."""
+ 
+    store_id: str
+    date: str
+    zones: list[HeatmapZone] = Field(default_factory=list)
+    generated_at: datetime

@@ -398,3 +398,49 @@ class HeatmapResponse(BaseModel):
     date: str
     zones: list[HeatmapZone] = Field(default_factory=list)
     generated_at: datetime
+    
+
+# ──────────────────────────────────────────────────────────────────────────
+# GET /stores/{id}/anomalies response models
+# ──────────────────────────────────────────────────────────────────────────
+ 
+class AnomalyItem(BaseModel):
+    """One detected anomaly."""
+ 
+    type: str = Field(..., description="BILLING_QUEUE_SPIKE | DEAD_ZONE | CONVERSION_DROP")
+    severity: str = Field(..., description="INFO | WARN | CRITICAL")
+    message: str = Field(..., description="Human readable description of the anomaly.")
+    suggested_action: str = Field(..., description="Recommended operational response.")
+    detected_at: datetime
+ 
+ 
+class AnomalyResponse(BaseModel):
+    """Response body for GET /stores/{id}/anomalies."""
+ 
+    store_id: str
+    anomalies: list[AnomalyItem] = Field(default_factory=list)
+    generated_at: datetime
+ 
+ 
+# ──────────────────────────────────────────────────────────────────────────
+# GET /health response models
+# ──────────────────────────────────────────────────────────────────────────
+ 
+class StoreHealth(BaseModel):
+    """Health status for one store feed."""
+ 
+    store_id: str
+    last_event_at: Optional[datetime] = None
+    status: str = Field(..., description="OK | STALE_FEED | NO_DATA")
+    lag_minutes: Optional[float] = Field(
+        default=None,
+        description="Minutes since last event. null if no events ever received.",
+    )
+ 
+ 
+class HealthResponse(BaseModel):
+    """Response body for GET /health."""
+ 
+    status: str = Field(..., description="OK if all stores healthy, DEGRADED if any store stale.")
+    stores: list[StoreHealth] = Field(default_factory=list)
+    generated_at: datetime
